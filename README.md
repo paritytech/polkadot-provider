@@ -1,4 +1,4 @@
-# Polkadot Provider
+# Polkadot Provider API
 
 A TypeScript Polkadot Provider API for consistency across clients and applications.
 
