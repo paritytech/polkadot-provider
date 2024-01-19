@@ -1,0 +1,22 @@
+{
+  "name": "@substrate/polkadot-provider",
+  "version": "0.0.1",
+  "description": "Polkadot Provider API for consistency across clients and applications",
+  "main": "",
+  "types": "index.d.ts",
+  "keywords": [],
+  "authors": [
+    "Matias Volpe (https://github.com/kratico)",
+    "Josep M Sobrepere (https://github.com/josepot)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paritytech/polkadot-provider.git"
+  },
+  "license": "MIT",
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  }
+}

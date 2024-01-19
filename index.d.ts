@@ -1,8 +1,3 @@
-# 🚧 [WIP] Polkadot Provider API
-
-A TypeScript Polkadot Provider API for consistency across clients and applications.
-
-```ts
 export type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void
 
@@ -69,4 +64,3 @@ export interface Account {
   // The provider may have captured a display name
   displayName?: string
 }
-```
