@@ -13,9 +13,10 @@ type UnsubscribeFn = () => void
 // longer than 32 bytes. This extra length is attributable
 // to the compact encoded block number, appended to the
 // hash of the forked block.
+type ChainId = string
 
 export interface Chain {
-  chainId: string
+  chainId: ChainId
   name: string
   symbol: string
   decimals: number
@@ -37,6 +38,11 @@ export interface Chain {
     // will be sending messages to
     onMessage: Callback<string>,
   ) => JsonRpcProvider
+}
+
+export interface RelayChain extends Chain {
+  addChain: (chainspec: string) => Promise<Chain>
+  getChains: () => Promise<Record<ChainId, Chain>>
 }
 
 export interface JsonRpcProvider {
