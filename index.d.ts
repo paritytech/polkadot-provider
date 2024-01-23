@@ -1,6 +1,10 @@
 export type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void
 
+export interface unstable_WalletProvider {
+  getChains: () => Promise<Record<ChainId, RelayChain>>
+}
+
 // `chainId` explanation:
 // (hash_of_forked_block, block_number_of_forked_block)
 // is the proper way of uniquely identifying a chain.
