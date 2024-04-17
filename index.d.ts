@@ -49,20 +49,14 @@ export interface RelayChain extends Chain {
   getChains: () => Promise<Record<ChainId, Chain>>
 }
 
-export interface JsonRpcProvider {
-  // it sends messages to the JSON RPC Server
+export interface JsonRpcConnection {
   send: (message: string) => void
-
-  // `publicKey` is the SS58Formated public key
-  // `callData` is the scale encoded call-data
-  // (module index, call index and args)
-  createTx: (publicKey: Uint8Array, callData: Uint8Array) => Promise<Uint8Array>
-
-  // it disconnects from the JSON RPC Server and it de-registers
-  // the `onMessage` and `onStatusChange` callbacks that
-  // were previously registered
-  disconnect: UnsubscribeFn
+  disconnect: () => void
 }
+
+export declare type JsonRpcProvider = (
+  onMessage: (message: string) => void,
+) => JsonRpcConnection
 
 export interface Account {
   // SS58 formated public key
@@ -73,4 +67,22 @@ export interface Account {
 
   // The provider may have captured a display name
   displayName?: string
+}
+
+export interface PolkadotSigner {
+  publicKey: Uint8Array
+  sign: (
+    callData: Uint8Array,
+    signedExtensions: Record<
+      string,
+      {
+        identifier: string
+        value: Uint8Array
+        additionalSigned: Uint8Array
+      }
+    >,
+    metadata: Uint8Array,
+    atBlockNumber: number,
+    hasher?: (data: Uint8Array) => Uint8Array,
+  ) => Promise<Uint8Array>
 }
