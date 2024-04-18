@@ -58,18 +58,8 @@ export declare type JsonRpcProvider = (
   onMessage: (message: string) => void,
 ) => JsonRpcConnection
 
-export interface Account {
-  // SS58 formated public key
-  address: string
-
-  // public key of the account
-  publicKey: Uint8Array
-
-  // The provider may have captured a display name
-  displayName?: string
-}
-
 export interface PolkadotSigner {
+  // Public key of the account.
   publicKey: Uint8Array
   sign: (
     callData: Uint8Array,
@@ -85,4 +75,11 @@ export interface PolkadotSigner {
     atBlockNumber: number,
     hasher?: (data: Uint8Array) => Uint8Array,
   ) => Promise<Uint8Array>
+}
+
+export interface Account extends PolkadotSigner {
+  // SS58 formated public key
+  address: string
+  // The provider may have captured a display name
+  displayName?: string
 }
