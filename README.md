@@ -18,9 +18,10 @@ type UnsubscribeFn = () => void
 // longer than 32 bytes. This extra length is attributable
 // to the compact encoded block number, appended to the
 // hash of the forked block.
+type ChainId = string
 
 export interface Chain {
-  chainId: string
+  chainId: ChainId
   name: string
   symbol: string
   decimals: number
@@ -44,28 +45,42 @@ export interface Chain {
   ) => JsonRpcProvider
 }
 
-export interface JsonRpcProvider {
-  // it sends messages to the JSON RPC Server
-  send: (message: string) => void
-
-  // `publicKey` is the SS58Formated public key
-  // `callData` is the scale encoded call-data
-  // (module index, call index and args)
-  createTx: (publicKey: Uint8Array, callData: Uint8Array) => Promise<Uint8Array>
-
-  // it disconnects from the JSON RPC Server and it de-registers
-  // the `onMessage` and `onStatusChange` callbacks that
-  // were previously registered
-  disconnect: UnsubscribeFn
+export interface RelayChain extends Chain {
+  addChain: (chainspec: string) => Promise<Chain>
+  getChains: () => Promise<Record<ChainId, Chain>>
 }
 
-export interface Account {
+export interface JsonRpcConnection {
+  send: (message: string) => void
+  disconnect: () => void
+}
+
+export declare type JsonRpcProvider = (
+  onMessage: (message: string) => void,
+) => JsonRpcConnection
+
+export interface PolkadotSigner {
+  // Public key of the account.
+  publicKey: Uint8Array
+  sign: (
+    callData: Uint8Array,
+    signedExtensions: Record<
+      string,
+      {
+        identifier: string
+        value: Uint8Array
+        additionalSigned: Uint8Array
+      }
+    >,
+    metadata: Uint8Array,
+    atBlockNumber: number,
+    hasher?: (data: Uint8Array) => Uint8Array,
+  ) => Promise<Uint8Array>
+}
+
+export interface Account extends PolkadotSigner {
   // SS58 formated public key
   address: string
-
-  // public key of the account
-  publicKey: Uint8Array
-
   // The provider may have captured a display name
   displayName?: string
 }
