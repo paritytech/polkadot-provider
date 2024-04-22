@@ -27,12 +27,12 @@ export interface Chain {
   ss58Format: number
 
   // it pulls the current list of available accounts for this Chain
-  getAccounts: () => Promise<Array<Account>>
+  getAccounts(): Promise<Account[]>
 
   // registers a callback that will be invoked whenever the list
   // of available accounts for this chain has changed. The callback
   // will be synchronously called with the current list of accounts.
-  onAccountsChange: (accounts: Callback<Array<Account>>) => UnsubscribeFn
+  onAccountsChange: (accounts: Callback<Account[]>) => UnsubscribeFn
 
   // returns a JSON RPC Provider that it's compliant with new
   // JSON-RPC API spec:
@@ -58,28 +58,30 @@ export declare type JsonRpcProvider = (
   onMessage: (message: string) => void,
 ) => JsonRpcConnection
 
-export interface PolkadotSigner {
-  // Public key of the account.
-  publicKey: Uint8Array
-  sign: (
-    callData: Uint8Array,
-    signedExtensions: Record<
-      string,
-      {
-        identifier: string
-        value: Uint8Array
-        additionalSigned: Uint8Array
-      }
-    >,
-    metadata: Uint8Array,
-    atBlockNumber: number,
-    hasher?: (data: Uint8Array) => Uint8Array,
-  ) => Promise<Uint8Array>
+export type KnownSignedExtensionIdentifiers =
+  | "CheckSpecVersion"
+  | "CheckVersion"
+  | "CheckGenesis"
+  | "CheckMortality"
+  | "CheckNonce"
+  | "ChargeTransactionPayment"
+  | "ChargeAssetTxPayment"
+
+type HintedSignedExtensions<T extends string> = {
+  identifier: KnownSignedExtensionIdentifiers | T
+  extra?: Uint8Array
+  additionalSigned?: Uint8Array
 }
 
-export interface Account extends PolkadotSigner {
-  // SS58 formated public key
+export interface Account {
   address: string
-  // The provider may have captured a display name
+  publicKey: Uint8Array
   displayName?: string
+  sign<T extends string>(
+    callData: Uint8Array,
+    hintedSignedExtensions?: HintedSignedExtensions<T>[],
+    hasher?: (data: Uint8Array) => Uint8Array,
+  ): Promise<void>
 }
+
+declare const Swag: Account
