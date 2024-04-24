@@ -26,22 +26,10 @@ export interface Chain {
   decimals: number
   ss58Format: number
 
-  // it pulls the current list of available accounts for this Chain
-  getAccounts(): Promise<Account[]>
-
-  // registers a callback that will be invoked whenever the list
-  // of available accounts for this chain has changed. The callback
-  // will be synchronously called with the current list of accounts.
-  onAccountsChange: (accounts: Callback<Account[]>) => UnsubscribeFn
-
   // returns a JSON RPC Provider that it's compliant with new
   // JSON-RPC API spec:
   // https://paritytech.github.io/json-rpc-interface-spec/api.html
-  connect: (
-    // the listener callback that the JsonRpcProvider
-    // will be sending messages to
-    onMessage: Callback<string>,
-  ) => JsonRpcProvider
+  connect: JsonRpcProvider
 }
 
 export interface RelayChain extends Chain {
@@ -54,11 +42,23 @@ export interface JsonRpcConnection {
   disconnect: () => void
 }
 
-export declare type JsonRpcProvider = (
+export type JsonRpcProvider = (
   onMessage: (message: string) => void,
 ) => JsonRpcConnection
 
-export type KnownSignedExtensionIdentifiers =
+export interface AccountsProvider {
+  getAccounts(): Promise<Account[]>
+  onAccountsChange: (accounts: Callback<Account[]>) => UnsubscribeFn
+}
+
+export interface Account {
+  publicKey: Uint8Array
+  displayName?: string
+  allowlist: string[]
+  sign<T extends string>(payload: SignPayload<T>): Promise<void>
+}
+
+export type KnownSignedExtensionIdentifier =
   | "CheckSpecVersion"
   | "CheckVersion"
   | "CheckGenesis"
@@ -67,21 +67,16 @@ export type KnownSignedExtensionIdentifiers =
   | "ChargeTransactionPayment"
   | "ChargeAssetTxPayment"
 
-type HintedSignedExtensions<T extends string> = {
-  identifier: KnownSignedExtensionIdentifiers | T
-  extra?: Uint8Array
-  additionalSigned?: Uint8Array
+export type SignedExtension<T extends string> = {
+  identifier: KnownSignedExtensionIdentifier | T
+  value: Uint8Array
+  additionalSigned: Uint8Array
 }
 
-export interface Account {
-  address: string
-  publicKey: Uint8Array
-  displayName?: string
-  sign<T extends string>(
-    callData: Uint8Array,
-    hintedSignedExtensions?: HintedSignedExtensions<T>[],
-    hasher?: (data: Uint8Array) => Uint8Array,
-  ): Promise<void>
+export type SignPayload<T extends string> = {
+  callData: Uint8Array
+  signedExtensions: Record<string, SignedExtension<T>>
+  metadata: Uint8Array
+  atBlockNumber: number
+  hasher?: (data: Uint8Array) => Uint8Array
 }
-
-declare const Swag: Account
