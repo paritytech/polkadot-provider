@@ -18,55 +18,66 @@ type UnsubscribeFn = () => void
 // longer than 32 bytes. This extra length is attributable
 // to the compact encoded block number, appended to the
 // hash of the forked block.
+type ChainId = string
 
 export interface Chain {
-  chainId: string
+  chainId: ChainId
   name: string
   symbol: string
   decimals: number
   ss58Format: number
 
-  // it pulls the current list of available accounts for this Chain
-  getAccounts: () => Promise<Array<Account>>
-
-  // registers a callback that will be invoked whenever the list
-  // of available accounts for this chain has changed. The callback
-  // will be synchronously called with the current list of accounts.
-  onAccountsChange: (accounts: Callback<Array<Account>>) => UnsubscribeFn
-
   // returns a JSON RPC Provider that it's compliant with new
   // JSON-RPC API spec:
   // https://paritytech.github.io/json-rpc-interface-spec/api.html
-  connect: (
-    // the listener callback that the JsonRpcProvider
-    // will be sending messages to
-    onMessage: Callback<string>,
-  ) => JsonRpcProvider
+  connect: JsonRpcProvider
 }
 
-export interface JsonRpcProvider {
-  // it sends messages to the JSON RPC Server
+export interface RelayChain extends Chain {
+  addChain: (chainspec: string) => Promise<Chain>
+  getChains: () => Promise<Record<ChainId, Chain>>
+}
+
+export interface JsonRpcConnection {
   send: (message: string) => void
+  disconnect: () => void
+}
 
-  // `publicKey` is the SS58Formated public key
-  // `callData` is the scale encoded call-data
-  // (module index, call index and args)
-  createTx: (publicKey: Uint8Array, callData: Uint8Array) => Promise<Uint8Array>
+export type JsonRpcProvider = (
+  onMessage: (message: string) => void,
+) => JsonRpcConnection
 
-  // it disconnects from the JSON RPC Server and it de-registers
-  // the `onMessage` and `onStatusChange` callbacks that
-  // were previously registered
-  disconnect: UnsubscribeFn
+export interface AccountsProvider {
+  getAccounts(): Promise<Account[]>
+  onAccountsChange: (accounts: Callback<Account[]>) => UnsubscribeFn
 }
 
 export interface Account {
-  // SS58 formated public key
-  address: string
-
-  // public key of the account
   publicKey: Uint8Array
-
-  // The provider may have captured a display name
   displayName?: string
+  allowlist: string[]
+  sign<T extends string>(payload: SignPayload<T>): Promise<void>
 }
-```
+
+export type SignedExtensionIdentifier =
+  | "CheckSpecVersion"
+  | "CheckVersion"
+  | "CheckGenesis"
+  | "CheckMortality"
+  | "CheckNonce"
+  | "ChargeTransactionPayment"
+  | "ChargeAssetTxPayment"
+
+export type SignedExtension<T extends string> = {
+  identifier: SignedExtensionIdentifier | T
+  value: Uint8Array
+  additionalSigned: Uint8Array
+}
+
+export type SignPayload<T extends string> = {
+  callData: Uint8Array
+  signedExtensions: Record<string, SignedExtension<T>>
+  metadata: Uint8Array
+  atBlockNumber: number
+  hasher?: (data: Uint8Array) => Uint8Array
+}
